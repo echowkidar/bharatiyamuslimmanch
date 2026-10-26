@@ -1,0 +1,12 @@
+services:
+  bharatiyamuslimmanch:
+    build: .
+    container_name: bharatiyamuslimmanch
+    restart: unless-stopped
+    networks:
+      - npm
+
+networks:
+  npm:
+    external: true
+    name: NPM_NETWORK_NAME   # <-- Nginx Proxy Manager container ka network naam yahan likhein
