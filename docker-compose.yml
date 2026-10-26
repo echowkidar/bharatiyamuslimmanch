@@ -9,4 +9,4 @@ services:
 networks:
   npm:
     external: true
-    name: NPM_NETWORK_NAME   # <-- Nginx Proxy Manager container ka network naam yahan likhein
+    name: npm-network
