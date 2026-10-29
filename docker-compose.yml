@@ -1,10 +1,37 @@
+# Deploy as a Portainer "Stack" (Repository / Web editor) or: docker compose up -d --build
+# Set the variables below in Portainer -> Stack -> Environment variables (or a .env file next to this file).
 services:
   bharatiyamuslimmanch:
     build: .
     container_name: bharatiyamuslimmanch
     restart: unless-stopped
+    # lets the non-root node user listen on port 80 (so your existing Nginx Proxy Manager target http://bharatiyamuslimmanch:80 keeps working)
+    sysctls:
+      - net.ipv4.ip_unprivileged_port_start=0
+    environment:
+      NODE_ENV: production
+      PORT: "80"
+      SITE_URL: ${SITE_URL:-https://bharatiyamuslimmanch.org}
+      APP_SECRET: ${APP_SECRET:?set a long random APP_SECRET}
+      ADMIN_USER: ${ADMIN_USER:-admin}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:?set ADMIN_PASSWORD for the first admin login}
+      # --- payments: phonepe | manual | mock ---
+      PAYMENT_MODE: ${PAYMENT_MODE:-manual}
+      UPI_ID: ${UPI_ID:-}
+      UPI_NAME: ${UPI_NAME:-Bharatiya Muslim Manch}
+      PHONEPE_ENV: ${PHONEPE_ENV:-sandbox}
+      PHONEPE_CLIENT_ID: ${PHONEPE_CLIENT_ID:-}
+      PHONEPE_CLIENT_SECRET: ${PHONEPE_CLIENT_SECRET:-}
+      PHONEPE_CLIENT_VERSION: ${PHONEPE_CLIENT_VERSION:-1}
+      PHONEPE_WEBHOOK_USER: ${PHONEPE_WEBHOOK_USER:-}
+      PHONEPE_WEBHOOK_PASS: ${PHONEPE_WEBHOOK_PASS:-}
+    volumes:
+      - bmm_data:/data
     networks:
       - npm
+
+volumes:
+  bmm_data:
 
 networks:
   npm:

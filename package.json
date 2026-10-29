@@ -1,0 +1,38 @@
+{
+  "name": "bharatiya-muslim-manch",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Bharatiya Muslim Manch - official website, member management, donations & admin panel",
+  "main": "server/index.js",
+  "scripts": {
+    "start": "node server/index.js",
+    "dev": "node --watch server/index.js",
+    "seed": "node server/seed.js",
+    "build:3d": "esbuild src/hero3d.js --bundle --minify --format=esm --target=es2020 --outfile=public/js/hero3d.js"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "bcryptjs": "^3.0.3",
+    "better-sqlite3": "^13.0.3",
+    "compression": "^1.8.2",
+    "cookie-parser": "^1.4.7",
+    "express": "^5.3.0",
+    "express-rate-limit": "^8.7.2",
+    "helmet": "^8.3.0",
+    "jsonwebtoken": "^9.0.3",
+    "multer": "^2.5.0",
+    "qrcode": "^1.5.4",
+    "sanitize-html": "^2.18.1",
+    "sharp": "^0.35.5"
+  },
+  "devDependencies": {
+    "@fontsource/inter": "^5.3.0",
+    "@fontsource/noto-sans-devanagari": "^5.3.0",
+    "esbuild": "^0.28.2",
+    "gsap": "^3.15.0",
+    "html-to-image": "^1.11.13",
+    "three": "^0.186.1"
+  }
+}

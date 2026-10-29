@@ -1,0 +1,12 @@
+services:
+  bharatiyamuslimmanch:
+    build: .
+    container_name: bharatiyamuslimmanch
+    restart: unless-stopped
+    networks:
+      - npm
+
+networks:
+  npm:
+    external: true
+    name: npm-network
