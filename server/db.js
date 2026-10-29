@@ -1,11 +1,21 @@
 const path = require('path');
-const Database = require('better-sqlite3');
+const { DatabaseSync } = require('node:sqlite'); // built into Node >= 22.13 (no native build needed)
 const cfg = require('./config');
 
-const db = new Database(path.join(cfg.DATA_DIR, 'bmm.sqlite'));
-db.pragma('journal_mode = WAL');
-db.pragma('foreign_keys = ON');
-db.pragma('busy_timeout = 5000');
+const raw = new DatabaseSync(path.join(cfg.DATA_DIR, 'bmm.sqlite'));
+raw.exec('PRAGMA journal_mode = WAL; PRAGMA foreign_keys = ON; PRAGMA busy_timeout = 5000;');
+let depth = 0, sp = 0;
+const db = {
+  exec: (sql) => raw.exec(sql),
+  prepare: (sql) => raw.prepare(sql),
+  // better-sqlite3 style transaction wrapper (nestable via savepoints)
+  transaction: (fn) => (...args) => {
+    const name = 'sp' + ++sp, outer = depth === 0;
+    raw.exec(outer ? 'BEGIN IMMEDIATE' : `SAVEPOINT ${name}`); depth++;
+    try { const r = fn(...args); depth--; raw.exec(outer ? 'COMMIT' : `RELEASE ${name}`); return r; }
+    catch (e) { depth--; raw.exec(outer ? 'ROLLBACK' : `ROLLBACK TO ${name}; RELEASE ${name}`); throw e; }
+  },
+};
 
 db.exec(`
 CREATE TABLE IF NOT EXISTS users(
