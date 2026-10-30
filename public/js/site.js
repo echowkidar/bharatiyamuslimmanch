@@ -132,7 +132,7 @@
   const $ = (s, el = m) => el.querySelector(s);
   const safe = { get: (k, s) => { try { return (s ? sessionStorage : localStorage).getItem(k); } catch (e) { return null; } }, set: (k, v, s) => { try { (s ? sessionStorage : localStorage).setItem(k, v); } catch (e) { /* ignore */ } } };
   const joinedAt = +safe.get('bmm_joined');
-  if (safe.get('bmm_jm_seen', true) || (joinedAt && Date.now() - joinedAt < 365 * 864e5)) return;
+  if ((location.pathname !== '/' && safe.get('bmm_jm_seen', true)) || (joinedAt && Date.now() - joinedAt < 365 * 864e5)) return;
   let last;
   const open = () => { m.hidden = false; last = document.activeElement; document.body.style.overflow = 'hidden'; setTimeout(() => { const i = $('input[name=name]'); i && i.focus({ preventScroll: true }); }, 350); };
   const close = () => { m.hidden = true; document.body.style.overflow = ''; safe.set('bmm_jm_seen', '1', true); last && last.focus && last.focus(); };
