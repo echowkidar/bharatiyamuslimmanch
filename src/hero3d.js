@@ -15,7 +15,7 @@ function boot(canvas) {
   renderer.setClearColor(0x000000, 0);
   const scene = new Scene();
   const camera = new PerspectiveCamera(42, 1, 0.1, 100);
-  camera.position.set(0, 0, 13);
+  camera.position.set(0, 0, 12.5);
 
   const root = new Group(); scene.add(root);
   const globe = new Group(); root.add(globe);
@@ -97,9 +97,8 @@ function boot(canvas) {
     const r = canvas.parentElement.getBoundingClientRect(); W = r.width; H = r.height;
     renderer.setPixelRatio(Math.min(devicePixelRatio, small ? 1.5 : 1.75)); renderer.setSize(W, H, false);
     camera.aspect = W / H; camera.updateProjectionMatrix();
-    const wide = W > 980;
-    root.position.set(wide ? 4.6 : 0, wide ? 0 : -3.2, wide ? 0 : -4);
-    root.scale.setScalar(wide ? 1 : small ? 0.7 : 0.85);
+    root.position.set(0, 0, 0);
+    root.scale.setScalar(Math.min(1, (W / H) * 1.05));
   };
   resize(); addEventListener('resize', resize);
 
@@ -117,10 +116,9 @@ function boot(canvas) {
   function frame(now) {
     const dt = Math.min(0.05, (now - last) / 1000); last = now; t += dt;
     mouse.x += (mouse.tx - mouse.x) * 0.06; mouse.y += (mouse.ty - mouse.y) * 0.06;
-    globe.rotation.y += dt * (0.12 + scrollP * 0.9);
+    globe.rotation.y += dt * 0.16;
     globe.rotation.x = 0.28 + mouse.y * 0.14;
     root.rotation.y = mouse.x * 0.18;
-    root.position.y += ((window.innerWidth > 980 ? 0 : -3.2) + scrollP * 1.8 - root.position.y) * 0.08;
     wire.rotation.y -= dt * 0.04; wire.rotation.x += dt * 0.02;
     dotMat.uniforms.uTime.value = t;
     rings.forEach((r) => {

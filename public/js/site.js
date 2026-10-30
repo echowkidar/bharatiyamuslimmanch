@@ -125,3 +125,35 @@
     const u = URL.createObjectURL(f); $('#photoBox').innerHTML = `<img src="${u}" alt="">`;
   });
 })();
+
+// ===== membership popup (shown first on every new visit) =====
+(() => {
+  const m = document.getElementById('joinModal'); if (!m) return;
+  const $ = (s, el = m) => el.querySelector(s);
+  const safe = { get: (k, s) => { try { return (s ? sessionStorage : localStorage).getItem(k); } catch (e) { return null; } }, set: (k, v, s) => { try { (s ? sessionStorage : localStorage).setItem(k, v); } catch (e) { /* ignore */ } } };
+  const joinedAt = +safe.get('bmm_joined');
+  if (safe.get('bmm_jm_seen', true) || (joinedAt && Date.now() - joinedAt < 365 * 864e5)) return;
+  let last;
+  const open = () => { m.hidden = false; last = document.activeElement; document.body.style.overflow = 'hidden'; setTimeout(() => { const i = $('input[name=name]'); i && i.focus({ preventScroll: true }); }, 350); };
+  const close = () => { m.hidden = true; document.body.style.overflow = ''; safe.set('bmm_jm_seen', '1', true); last && last.focus && last.focus(); };
+  m.addEventListener('click', (e) => { if (e.target === m || e.target.closest('[data-jm-close]')) close(); });
+  addEventListener('keydown', (e) => { if (!m.hidden && e.key === 'Escape') close(); });
+  const form = $('#jmForm'), err = $('.form-err', form), btn = $('button[type=submit]', form);
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault(); err.textContent = '';
+    if (!form.checkValidity()) { form.reportValidity(); return; }
+    const f = form.photo && form.photo.files[0];
+    if (f && f.size > 5.5 * 1024 * 1024) { err.textContent = 'फ़ोटो 5MB से छोटी होनी चाहिए।'; return; }
+    const label = btn.innerHTML; btn.disabled = true; btn.textContent = '…';
+    try {
+      const r = await fetch(form.action, { method: 'POST', body: new FormData(form), headers: { 'X-Requested-With': 'XMLHttpRequest' } });
+      const j = await r.json().catch(() => ({ ok: false, error: 'सर्वर से उत्तर नहीं मिला।' }));
+      if (!j.ok) throw new Error(j.error || 'त्रुटि');
+      safe.set('bmm_joined', String(Date.now()));
+      if (j.redirect && !/^\/join\/done/.test(j.redirect)) { location.href = j.redirect; return; } // membership fee -> payment page
+      form.hidden = true; $('.jm-main > .kicker').hidden = true; $('#jmT').hidden = true; $('.jm-main > p').hidden = true; $('.jm-done').hidden = false;
+    } catch (er) { err.textContent = er.message; btn.disabled = false; btn.innerHTML = label; }
+  });
+  const go = () => setTimeout(open, 900);
+  if (document.body.classList.contains('ready')) go(); else addEventListener('load', go, { once: true });
+})();

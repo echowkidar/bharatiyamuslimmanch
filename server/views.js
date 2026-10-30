@@ -79,6 +79,7 @@ ${extraHead}
   </div>
 </header>
 <main id="main">${body}</main>
+${joinPopup(c)}
 <footer class="foot">
   <div class="foot-glow"></div>
   <div class="wrap foot-grid">
@@ -106,6 +107,39 @@ ${extraHead}
 ${home ? '<script src="/js/hero3d.js" type="module" defer></script>' : ''}
 ${scripts}
 </body></html>`;
+}
+
+
+const NO_POPUP = /^\/(join|donate|pay|card|verify|receipt)/;
+function joinPopup(c) {
+  if (NO_POPUP.test(c.req.path)) return '';
+  const { L } = c;
+  const fee = parseInt(c.s.membership_fee) || 0;
+  return `<div class="jm" id="joinModal" role="dialog" aria-modal="true" aria-labelledby="jmT" hidden>
+  <div class="jm-box">
+    <button class="jm-x" type="button" data-jm-close aria-label="${L('बंद करें', 'Close')}">×</button>
+    <aside class="jm-side"><img src="/img/logo.webp" alt="" width="84" height="84"><h3>${L('भारतीय मुस्लिम मंच', 'Bharatiya Muslim Manch')}</h3><p>${L(c.s.tagline, c.s.tagline_en)}</p>
+      <ul class="ticks"><li>${L('डिजिटल सदस्यता कार्ड (QR सहित)', 'Digital member card with QR')}</li><li>${L('अपने राज्य/ज़िले की इकाई से जुड़ाव', 'Connect with your local unit')}</li><li>${L('मंच के कार्यक्रमों की जानकारी', 'Updates on Manch programmes')}</li></ul></aside>
+    <div class="jm-main">
+      <span class="kicker">${L('सदस्यता', 'Membership')}</span><h2 id="jmT">${L('मंच के सदस्य बनें', 'Become a member')}</h2>
+      <p class="muted sm">${L('सिर्फ़ एक मिनट — नीचे की जानकारी भरें।', 'Takes one minute — fill in the details below.')}${fee ? ' ' + L('शुल्क', 'Fee') + ' ₹' + fee : ''}</p>
+      <form id="jmForm" data-mjoin action="/api/join" method="post" enctype="multipart/form-data" novalidate>
+        <div class="fgrid">
+          ${field(L('पूरा नाम', 'Full name'), '<input name="name" required maxlength="80" autocomplete="name">', { req: 1 })}
+          ${field(L('मोबाइल नंबर', 'Mobile number'), '<input name="mobile" required inputmode="numeric" maxlength="10" pattern="[6-9][0-9]{9}" autocomplete="tel-national">', { req: 1 })}
+          ${field(L('राज्य', 'State'), `<select name="state_code" required>${stateOptions(c)}</select>`, { req: 1 })}
+          ${field(L('ज़िला', 'District'), '<input name="district" required maxlength="60">', { req: 1 })}
+          ${field(L('फ़ोटो (वैकल्पिक)', 'Photo (optional)'), '<input name="photo" type="file" accept="image/jpeg,image/png,image/webp">', { cls: 'full' })}
+        </div>
+        <input type="text" name="website" class="hp-field" tabindex="-1" autocomplete="off" aria-hidden="true">
+        <label class="check"><input type="checkbox" name="consent" value="1" required> <span>${L('मैं भारत का नागरिक हूँ, मंच के उद्देश्यों से सहमत हूँ और मेरी जानकारी सही है।', 'I am a citizen of India, I agree with the aims of the Manch and my details are correct.')}</span></label>
+        <div class="form-err" role="alert"></div>
+        <div class="jm-actions"><button class="btn btn-gold btn-lg" type="submit">${L('सदस्य बनें', 'Join now')} →</button><button class="btn btn-ghost" type="button" data-jm-close>${L('अभी नहीं — वेबसाइट देखें', 'Not now — explore the site')}</button></div>
+        <p class="tiny muted"><a href="/join">${L('पूरा सदस्यता फॉर्म (पता, शिक्षा आदि)', 'Full membership form')}</a> • <a href="/p/privacy">${L('गोपनीयता', 'Privacy')}</a></p>
+      </form>
+      <div class="jm-done" hidden><p class="big-ok">✓</p><h3>${L('धन्यवाद! आपका आवेदन मिल गया', 'Thank you! Application received')}</h3><p class="muted">${L('स्वीकृति के बाद आप "कार्ड पाएँ" पेज से अपना सदस्यता कार्ड डाउनलोड कर सकेंगे।', 'After approval you can download your card from the "Get card" page.')}</p><button class="btn btn-gold" type="button" data-jm-close>${L('वेबसाइट देखें', 'Explore the site')}</button></div>
+    </div>
+  </div></div>`;
 }
 
 // --------------------------------------------------------------- fragments
@@ -158,8 +192,9 @@ function home(c) {
 
   const body = `
 <section class="hero" id="top">
-  <canvas id="hero3d" aria-hidden="true"></canvas>
+  <div class="hero-orb o1"></div><div class="hero-orb o2"></div>
   <div class="hero-fade"></div>
+  <img class="hero-img" src="/img/hero.webp" alt="${esc(L('भारतीय मुस्लिम मंच का नेतृत्व', 'Leadership of Bharatiya Muslim Manch'))}" width="1500" height="1000" fetchpriority="high">
   <div class="wrap hero-in">
     <span class="kicker pulse">${L('भारतीय मुस्लिम मंच • आधिकारिक वेबसाइट', 'Bharatiya Muslim Manch • Official website')}</span>
     <h1 class="hero-h split">${splitWords(L(s.hero_title, s.hero_title_en))}</h1>
@@ -189,11 +224,17 @@ function home(c) {
   <div class="pillars">${pillars.map(([i, t, d]) => `<div class="pillar tilt reveal"><span class="pi">${i}</span><h3>${t}</h3><p>${d}</p></div>`).join('')}</div>
 </div></section>
 
-<section class="stats"><div class="wrap stats-grid">
-  <div class="stat reveal"><b data-count="${nMembers}">${nMembers}</b><span>${L('सक्रिय सदस्य', 'Active members')}</span></div>
-  <div class="stat reveal"><b data-count="${nStates}">${nStates}</b><span>${L('राज्य इकाइयाँ', 'State units')}</span></div>
-  <div class="stat reveal"><b data-count="${nPress}">${nPress}</b><span>${L('प्रेस विज्ञप्तियाँ', 'Press releases')}</span></div>
-  <div class="stat reveal"><b data-count="${nEvents}">${nEvents}</b><span>${L('कार्यक्रम', 'Events')}</span></div>
+<section class="globe-sec"><div class="wrap globe-grid">
+  <div class="globe-tx reveal"><span class="kicker">${L('देश भर में', 'Across India')}</span><h2>${L('देश भर में फैलता हमारा संगठन', 'Our organisation, growing across India')}</h2>
+    <p class="lead">${L('हर राज्य और ज़िले में मंच की इकाइयाँ बन रही हैं। अपने क्षेत्र की इकाई से जुड़ें और संविधान, तालीम व भाईचारे की इस मुहिम का हिस्सा बनें।', 'Units of the Manch are being formed in every state and district. Join your local unit and be part of this movement for the Constitution, education and harmony.')}</p>
+    <div class="stats-grid">
+      <div class="stat"><b data-count="${nMembers}">${nMembers}</b><span>${L('सक्रिय सदस्य', 'Active members')}</span></div>
+      <div class="stat"><b data-count="${nStates}">${nStates}</b><span>${L('राज्य इकाइयाँ', 'State units')}</span></div>
+      <div class="stat"><b data-count="${nPress}">${nPress}</b><span>${L('प्रेस विज्ञप्तियाँ', 'Press releases')}</span></div>
+      <div class="stat"><b data-count="${nEvents}">${nEvents}</b><span>${L('कार्यक्रम', 'Events')}</span></div>
+    </div>
+    <div class="hero-cta"><a class="btn btn-gold magnetic" href="/units">${L('अपनी इकाई खोजें', 'Find your unit')} →</a><a class="btn btn-ghost" href="/join">${L('सदस्य बनें', 'Join')}</a></div></div>
+  <div class="globe-wrap reveal"><canvas id="hero3d" aria-hidden="true"></canvas></div>
 </div></section>
 
 <section class="sec"><div class="wrap">
