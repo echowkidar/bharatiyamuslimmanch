@@ -298,3 +298,9 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--gold);ba
   .hero-people{max-width:520px}
 }
 @media (max-width:900px){.hero-h{text-shadow:none}}
+/* hero: tighter height, photo fills it top-to-bottom (no empty band above heads) */
+@media (min-width:901px){
+  .hero{min-height:min(82vh,720px)}
+  .hero-in{padding-block:3rem 4rem}
+  .hero-img{height:min(104%,740px,45vw);right:0}
+}
