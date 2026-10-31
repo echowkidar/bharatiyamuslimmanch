@@ -15,6 +15,7 @@ services:
       APP_SECRET: ${APP_SECRET:?set a long random APP_SECRET}
       ADMIN_USER: ${ADMIN_USER:-admin}
       ADMIN_PASSWORD: ${ADMIN_PASSWORD:?set ADMIN_PASSWORD for the first admin login}
+      ADMIN_RESET: ${ADMIN_RESET:-0}
       # --- payments: phonepe | manual | mock ---
       PAYMENT_MODE: ${PAYMENT_MODE:-manual}
       UPI_ID: ${UPI_ID:-}

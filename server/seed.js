@@ -32,6 +32,13 @@ function run() {
     console.log(` Admin created -> user: ${cfg.ADMIN_USER.toLowerCase()}  ${generated ? 'password: ' + pw + '   (change it after login!)' : '(password from ADMIN_PASSWORD)'}`);
     console.log('============================================================');
   }
+  // Password reset: set ADMIN_RESET=1 together with ADMIN_PASSWORD, redeploy once, then remove ADMIN_RESET.
+  if (process.env.ADMIN_RESET === '1' && cfg.ADMIN_PASSWORD) {
+    const u = cfg.ADMIN_USER.toLowerCase(), h = bcrypt.hashSync(cfg.ADMIN_PASSWORD, 11);
+    const r = db.prepare("UPDATE users SET password_hash=?, active=1, role='super' WHERE username=?").run(h, u);
+    if (!r.changes) db.prepare("INSERT INTO users(username,name,password_hash,role) VALUES(?,?,?,'super')").run(u, 'Administrator', h);
+    console.log(` Admin password RESET for user '${u}' from ADMIN_PASSWORD. Now remove ADMIN_RESET from env.`);
+  }
   const insP = db.prepare('INSERT OR IGNORE INTO pages(slug,title,body) VALUES(?,?,?)');
   for (const [slug, [title, body]] of Object.entries(PAGES)) insP.run(slug, title, body);
 
